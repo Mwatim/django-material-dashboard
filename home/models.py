@@ -15,8 +15,6 @@ class Company(models.Model):
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=350)
-    founding_year = models.DateTimeField()
-    listing_year = models.DateTimeField()
     edited_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
 
