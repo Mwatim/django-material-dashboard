@@ -10,10 +10,24 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
-import os, random, string
+import os
+import random
+import string
+import pymysql
+import logging
+import mimetypes
 from pathlib import Path
 from dotenv import load_dotenv
 from str2bool import str2bool
+from decouple import config
+from unipath import Path
+from django.contrib.messages import constants as messages
+
+mimetypes.add_type("text/css", ".css", True)
+# SETTINGS_PATH = os.path.dirname(os.path.dirname(__file__))
+
+pymysql.version_info = (1, 4, 3, "final", 0)
+pymysql.install_as_MySQLdb()
 
 load_dotenv()  # take environment variables from .env.
 
@@ -100,8 +114,8 @@ DB_HOST     = os.getenv('DB_HOST'     , None)
 DB_PORT     = os.getenv('DB_PORT'     , None)
 DB_NAME     = os.getenv('DB_NAME'     , None)
 
-if DB_ENGINE and DB_NAME and DB_USERNAME:
-    DATABASES = { 
+# if DB_ENGINE and DB_NAME and DB_USERNAME:
+DATABASES = { 
       'default': {
         'ENGINE'  : 'django.db.backends.' + DB_ENGINE, 
         'NAME'    : DB_NAME,
@@ -111,13 +125,13 @@ if DB_ENGINE and DB_NAME and DB_USERNAME:
         'PORT'    : DB_PORT,
         }, 
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': 'db.sqlite3',
-        }
-    }
+# else:
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': 'db.sqlite3',
+#         }
+#     }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -143,7 +157,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Africa/Nairobi"
 
 USE_I18N = True
 
