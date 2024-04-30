@@ -12,6 +12,11 @@ class Company(models.Model):
     creator = models.ForeignKey(User, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=350)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=350)
+    founding_year = models.DateTimeField()
+    listing_year = models.DateTimeField()
     edited_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
 
@@ -22,6 +27,7 @@ class Company(models.Model):
         if not self.pk:
             self.created_at = timezone.now()
         self.edited_at = timezone.now()
+        self.name = str(self.start_date.year)
         super(Company, self).save(*args, **kwargs)
 
     def soft_delete(self):
