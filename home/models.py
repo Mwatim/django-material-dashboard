@@ -8,13 +8,13 @@ from django.utils import timezone
 from decimal import Decimal
 
 # Create your models here.
-class Company(models.Model):
+class CompanyTicker(models.Model):
     creator = models.ForeignKey(User, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
-    name = models.CharField(max_length=350)
-    creator = models.ForeignKey(User, on_delete=models.CASCADE)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    name = models.CharField(max_length=350)
+    company = models.OneToOneField('Company', on_delete=models.PROTECT)
+    ticker = models.CharField(max_length=10)
     edited_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
 
@@ -25,7 +25,35 @@ class Company(models.Model):
         if not self.pk:
             self.created_at = timezone.now()
         self.edited_at = timezone.now()
-        self.name = str(self.start_date.year)
+        super(CompanyTicker, self).save(*args, **kwargs)
+
+    def soft_delete(self):
+        self.is_deleted = True
+        self.save()
+
+    @classmethod
+    def delete(cls, *args, **kwargs):
+        # Override delete method to perform soft delete and prevent hard deletion of record
+        queryset = cls.objects.filter(*args, **kwargs)
+        queryset.update(is_deleted=True)
+
+class Company(models.Model):
+    creator = models.ForeignKey(User, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=350)
+    edited_at = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)
+
+    def get_absolute_url(self):
+        return reverse("apps.home:company_detail", kwargs={"ticker": CompanyTicker.objects.get(company=self).ticker})
+    
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.created_at = timezone.now()
+        self.edited_at = timezone.now()
         super(Company, self).save(*args, **kwargs)
 
     def soft_delete(self):
@@ -43,6 +71,7 @@ class CompanyFoundingYear(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     company = models.ForeignKey(Company, on_delete=models.PROTECT)
     founding_year = models.DateTimeField()
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     edited_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     
@@ -67,6 +96,7 @@ class CompanyListingYear(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     company = models.ForeignKey(Company, on_delete=models.PROTECT)
     listing_year = models.DateTimeField()
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     edited_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     
@@ -91,6 +121,7 @@ class CompanyDescription(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     company = models.ForeignKey(Company, on_delete=models.PROTECT)
     description = models.TextField(max_length=1000)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     edited_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     
@@ -115,6 +146,7 @@ class CompanyHeadquarters(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     company = models.ForeignKey(Company, on_delete=models.PROTECT)
     headquarters = models.CharField(max_length=300)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     edited_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     
@@ -138,6 +170,7 @@ class Sector(models.Model):
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=50)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     edited_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     
@@ -162,6 +195,7 @@ class CompanySector(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     company = models.ForeignKey(Company, on_delete=models.PROTECT)
     sector = models.OneToOneField(Sector, on_delete=models.PROTECT, related_name='companysector')
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     edited_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     
@@ -186,6 +220,7 @@ class CompanyFinancialYearEnd(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     company = models.OneToOneField(Company, on_delete=models.PROTECT, related_name='companyfinancialyearend')
     financial_year_end = models.DateTimeField()
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     edited_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     
@@ -210,7 +245,9 @@ class Subsidiary(models.Model):
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=50)
+    # parent = models.
     sector = models.OneToOneField(Sector, on_delete=models.PROTECT, related_name='subsidiarysector')
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     edited_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     
@@ -235,6 +272,7 @@ class SubsidiaryFoundingYear(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     subsidiary = models.OneToOneField(Subsidiary, on_delete=models.PROTECT, related_name='subsidiaryfoundingyear')
     founding_year = models.DateTimeField()
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     edited_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     
@@ -242,7 +280,7 @@ class SubsidiaryFoundingYear(models.Model):
         if not self.pk:
             self.created_at = timezone.now()
         self.edited_at = timezone.now()
-        super(CompanyListingYear, self).save(*args, **kwargs)
+        super(SubsidiaryFoundingYear, self).save(*args, **kwargs)
 
     def soft_delete(self):
         self.is_deleted = True
@@ -259,6 +297,7 @@ class SubsidiaryDescription(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     subsidiary = models.OneToOneField(Subsidiary, on_delete=models.PROTECT, related_name='subsidiarydescription')
     description = models.TextField(max_length=1000)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     edited_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     
@@ -266,7 +305,7 @@ class SubsidiaryDescription(models.Model):
         if not self.pk:
             self.created_at = timezone.now()
         self.edited_at = timezone.now()
-        super(CompanyDescription, self).save(*args, **kwargs)
+        super(SubsidiaryDescription, self).save(*args, **kwargs)
 
     def soft_delete(self):
         self.is_deleted = True
@@ -283,6 +322,7 @@ class SubsidiaryHeadquarters(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     subsidiary = models.OneToOneField(Subsidiary, on_delete=models.PROTECT, related_name='subsidiaryheadquarters')
     headquarters = models.CharField(max_length=300)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     edited_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     

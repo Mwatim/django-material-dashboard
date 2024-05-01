@@ -46,7 +46,7 @@ def log_and_require(methods=("GET", "POST"), login=True, function_name=None):
                 wrapped = view_func
             
             if login:
-                wrapped = login_required(login_url="/login/")(wrapped)
+                wrapped = login_required(login_url="/accounts/login/")(wrapped)
 
             # Check if the log file exists, and if not, create it
             if not os.path.isfile(log_file):
