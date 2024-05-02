@@ -4,7 +4,7 @@ from home.scripts import log_and_require
 from home.models import *
 # Create your views here.
 
-@log_and_require(methods=("GET", ""), login=True,)
+@log_and_require(methods=("GET"), login=True,)
 def index(request):
 
     # Page from the theme 
@@ -20,7 +20,11 @@ def company_detail(request, ticker):
     companyhq = CompanyHeadquarters.objects.get(company=company)
     companysector = CompanySector.objects.get(company=company)
     companyfinancialyearend = CompanyFinancialYearEnd.objects.get(company=company)
-    # companysubsidiaries = Su
+    subsidiaries = Subsidiary.objects.all()
+    companysubsidiaries = []
+    for subsidiary in subsidiaries:
+        if company in subsidiary.parents.all():
+            companysubsidiaries.append(subsidiary)
 
     context = {
         "companyticker":companyticker,
@@ -31,6 +35,7 @@ def company_detail(request, ticker):
         "companyhq":companyhq,
         "companysector":companysector,
         "companyfinancialyearend":companyfinancialyearend,
+        "companysubsidiaries":companysubsidiaries
     }
 
     return render(request, 'home/company_detail.html', context)
